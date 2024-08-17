@@ -18,9 +18,8 @@ def main():
     # set up layers dimensions
     first = X_train.shape[0]
     #layers_dims_list = [[first, 10, 1], [first, 10, 10, 1], [first, 20, 1], [first, 20, 20, 1]]
-    #lambda_list = [0, 1e-1, 5]
-    layers_dims_list = [[first, 10, 10, 1]]
-    lambda_list = [0.1]
+    layers_dims_list = [[first, 10, 1]]
+    lambda_list = [0, 0.1, 10, 50]
 
     parameters = cross_validation(X_train, Y_train, X_valid, Y_valid, layers_dims_list, lambda_list)
 

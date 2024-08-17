@@ -4,7 +4,7 @@ import numpy as np
 
 from UtilsFunctions import *
 
-def compute_cost_reg(AL, y, parameters, lambd=0):
+def compute_cost_reg(AL, y, parameters, lambd=0, is_L2=True):
     """
     Computes the Cross-Entropy cost function with L2 regularization.
 
@@ -34,16 +34,18 @@ def compute_cost_reg(AL, y, parameters, lambd=0):
     parameters_vector = dictionary_to_vector(parameters)
 
     # compute the regularization penalty
-    L2_regularization_penalty = (
-                                        lambd / (2 * m)) * np.sum(np.square(parameters_vector))
+    if is_L2:
+        regularization_penalty = (lambd / (2 * m)) * np.sum(np.square(parameters_vector))
+    else:
+        regularization_penalty = (lambd / (2 * m)) * np.sum(np.abs(parameters_vector))
 
     # compute the total cost
-    cost = cross_entropy_cost + L2_regularization_penalty
+    cost = cross_entropy_cost + regularization_penalty
 
     return cost
 
 
-def linear_backword_reg(dZ, cache, lambd=0):
+def linear_backword_reg(dZ, cache, lambd=0, is_L2=True):
     """
     Computes the gradient of the output w.r.t weight, bias, & post-activation
     output of (l - 1) layers at layer l.
@@ -70,7 +72,10 @@ def linear_backword_reg(dZ, cache, lambd=0):
     A_prev, W, b = cache
     m = A_prev.shape[1]
 
-    dW = (1 / m) * np.dot(dZ, A_prev.T) + (lambd / m) * W
+    if(is_L2):
+        dW = (1 / m) * np.dot(dZ, A_prev.T) + (lambd / m) * W
+    else:
+        dW = (1 / m) * np.dot(dZ, A_prev.T) + (lambd / m)
     db = (1 / m) * np.sum(dZ, axis=1, keepdims=True)
     dA_prev = np.dot(W.T, dZ)
 
@@ -81,7 +86,7 @@ def linear_backword_reg(dZ, cache, lambd=0):
     return dA_prev, dW, db
 
 
-def linear_activation_backward_reg(dA, cache, activation_fn="relu", lambd=0):
+def linear_activation_backward_reg(dA, cache, activation_fn="relu", lambd=0, is_L2=True):
     """
     Arguments
     ---------
@@ -108,21 +113,21 @@ def linear_activation_backward_reg(dA, cache, activation_fn="relu", lambd=0):
 
     if activation_fn == "sigmoid":
         dZ = sigmoid_gradient(dA, activation_cache)
-        dA_prev, dW, db = linear_backword_reg(dZ, linear_cache, lambd)
+        dA_prev, dW, db = linear_backword_reg(dZ, linear_cache, lambd, is_L2)
 
     elif activation_fn == "tanh":
         dZ = tanh_gradient(dA, activation_cache)
-        dA_prev, dW, db = linear_backword_reg(dZ, linear_cache, lambd)
+        dA_prev, dW, db = linear_backword_reg(dZ, linear_cache, lambd, is_L2)
 
     elif activation_fn == "relu":
         dZ = relu_gradient(dA, activation_cache)
-        dA_prev, dW, db = linear_backword_reg(dZ, linear_cache, lambd)
+        dA_prev, dW, db = linear_backword_reg(dZ, linear_cache, lambd, is_L2)
 
     return dA_prev, dW, db
 
 
 def L_model_backward_reg(AL, y, caches, hidden_layers_activation_fn="relu",
-                         lambd=0):
+                         lambd=0, is_L2=True):
     """
     Computes the gradient of output layer w.r.t weights, biases, etc. starting
     on the output layer in reverse topological order.
@@ -153,14 +158,14 @@ def L_model_backward_reg(AL, y, caches, hidden_layers_activation_fn="relu",
     dAL = np.divide(AL - y, np.multiply(AL, 1 - AL))
 
     grads["dA" + str(L - 1)], grads["dW" + str(L)], grads["db" + str(L)] = \
-        linear_activation_backward_reg(dAL, caches[L - 1], "sigmoid", lambd)
+        linear_activation_backward_reg(dAL, caches[L - 1], "sigmoid", lambd, is_L2)
 
     for l in range(L - 1, 0, -1):
         current_cache = caches[l - 1]
         grads["dA" + str(l - 1)], grads["dW" + str(l)], grads["db" + str(l)] = \
             linear_activation_backward_reg(
                 grads["dA" + str(l)], current_cache,
-                hidden_layers_activation_fn, lambd)
+                hidden_layers_activation_fn, lambd, is_L2)
 
     return grads
 
@@ -215,11 +220,11 @@ def model_with_regularization(
             X, parameters, hidden_layers_activation_fn)
 
         # compute regularized cost
-        reg_cost = compute_cost_reg(AL, y, parameters, lambd)
+        reg_cost = compute_cost_reg(AL, y, parameters, lambd, is_L2)
 
         # compute gradients
         grads = L_model_backward_reg(
-            AL, y, caches, hidden_layers_activation_fn, lambd)
+            AL, y, caches, hidden_layers_activation_fn, lambd, is_L2)
 
         # update parameters
         parameters = update_parameters(parameters, grads, learning_rate)
@@ -439,8 +444,8 @@ def accuracy(X, parameters, y, activation_fn="relu"):
     labels = (probs >= 0.5) * 1
     accuracy = np.mean(labels == y) * 100
 
-    print(probs)
-    print(labels)
-    print(y)
+    #print(probs)
+    #print(labels)
+    #print(y)
 
     return accuracy

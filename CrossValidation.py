@@ -13,8 +13,36 @@ def cross_validation(X_train, Y_train, X_valid, Y_valid, layers_dims_list, lambd
 
     for lambd in lambda_list:
         for layers_dims in layers_dims_list:
-            for is_L2 in [True]:
-                print(layers_dims, is_L2, lambd)
+
+            print("***********************************************************************************************")
+            print("                         MODEL: ", layers_dims, " lambda: ", lambd, "                        ")
+            print("***********************************************************************************************")
+
+            if lambd == 0:
+                parameters, error = model_with_regularization(X_train, Y_train, layers_dims,
+                                                              learning_rate, num_epochs, print_cost,
+                                                              hidden_layers_activation_fn,
+                                                              lambd)
+
+                validation_accuracy = accuracy(X_valid, parameters, Y_valid)
+                print("The training accuracy rate with no regularization: ", accuracy(X_train, parameters, Y_train))
+                print("The training error with no regularization: ", error)
+                print("The validation accuracy rate with no regularization: ", validation_accuracy)
+                print("-----------------------------------------------------------------------------------------------")
+
+                # Different scenarios: accuracy and cost are both better, accuracy or error is significantly better
+                if (validation_accuracy > best_accuracy and error < min_error) or \
+                        ((best_accuracy - validation_accuracy) < 5 and error < min_error) or \
+                        (validation_accuracy - best_accuracy) > 10:
+                    best_accuracy = validation_accuracy
+                    min_error = error
+                    best_parameters = parameters
+                    best_dim = layers_dims
+                    best_lambda = lambd
+
+                continue
+
+            for is_L2 in [True, False]:
 
                 parameters, error = model_with_regularization(X_train, Y_train, layers_dims,
                                                    learning_rate, num_epochs, print_cost,
@@ -24,8 +52,10 @@ def cross_validation(X_train, Y_train, X_valid, Y_valid, layers_dims_list, lambd
                 validation_accuracy = accuracy(X_valid, parameters, Y_valid)
                 if is_L2: reg = "L2"
                 else: reg = "L1"
-                print("The training accuracy rate with ", reg, " with λ ", lambd, " and layers ", layers_dims, " :", accuracy(X_train, parameters, Y_train))
-                print("The validation accuracy rate with ", reg, " with λ ", lambd, " and layers ", layers_dims, " :", validation_accuracy)
+                print("The training accuracy rate with ", reg, " regularization: ", accuracy(X_train, parameters, Y_train))
+                print("The training error with ", reg, " regularization: ", error)
+                print("The validation accuracy rate with ", reg, " regularization: ", validation_accuracy)
+                print("-----------------------------------------------------------------------------------------------")
 
                 # Different scenarios: accuracy and cost are both better, accuracy or error is significantly better
                 if (validation_accuracy > best_accuracy and error < min_error) or \
