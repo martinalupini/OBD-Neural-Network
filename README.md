@@ -13,5 +13,7 @@ The network is designed to be versatile and includes several advanced features:
 
 4. **Dataset Flexibility**: The network is designed to handle different types of tasks, including binary classification and regression. This flexibility allows the model to be applied to a wide range of problems, from predicting binary outcomes to estimating continuous values.
 
+
+5. **Activation Function Selection**: The network offers flexibility in choosing the activation function for the hidden layers, with options including ReLU, Tanh, and Sigmoid. This allows for tailored activation strategies depending on the specific characteristics of the dataset and the task at hand.
 ---
 Final project for the course **Optimization Methods for Big Data**, University of Rome Tor Vergata (Master's Degree in  Computer Engineering), September 2024.

@@ -167,7 +167,7 @@ def L_model_backward_reg(AL, y, caches, hidden_layers_activation_fn="relu",
 
 def model_with_regularization(
         X, y, layers_dims, learning_rate=0.01,  num_epochs=3000,
-        print_cost=False, hidden_layers_activation_fn="relu", lambd=0):
+        print_cost=False, hidden_layers_activation_fn="relu", lambd=0, is_L2=True):
     """
     Implements L-Layer neural network.
 
@@ -239,7 +239,7 @@ def model_with_regularization(
     plt.ylabel("Cost")
     plt.title("Cost curve for the learning rate = {}".format(learning_rate))
 
-    return parameters
+    return parameters, reg_cost
 
 # Initialize parameters
 def initialize_parameters(layers_dims):
@@ -439,7 +439,8 @@ def accuracy(X, parameters, y, activation_fn="relu"):
     labels = (probs >= 0.5) * 1
     accuracy = np.mean(labels == y) * 100
 
+    print(probs)
     print(labels)
     print(y)
 
-    return f"The accuracy rate is: {accuracy:.2f}%."
+    return accuracy

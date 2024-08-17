@@ -5,6 +5,7 @@ import h5py
 from sklearn.preprocessing import StandardScaler
 
 from NeuralNetwork import *
+from CrossValidation import *
 
 def main():
     np.random.seed(123456)
@@ -15,17 +16,16 @@ def main():
     X_train, Y_train, X_valid, Y_valid, X_test, Y_test = preprocess(dataset, "Diagnosis")
 
     # set up layers dimensions
-    layers_dims = [X_train.shape[0], 10, 1]
+    first = X_train.shape[0]
+    #layers_dims_list = [[first, 10, 1], [first, 10, 10, 1], [first, 20, 1], [first, 20, 20, 1]]
+    #lambda_list = [0, 1e-1, 5]
+    layers_dims_list = [[first, 10, 10, 1]]
+    lambda_list = [0.1]
 
-    # train NN
-    parameters = model_with_regularization(X_train, Y_train, layers_dims,
-                                           learning_rate=0.03, num_epochs=2500, print_cost=True,
-                                           hidden_layers_activation_fn="relu",
-                                           lambd=0)
+    parameters = cross_validation(X_train, Y_train, X_valid, Y_valid, layers_dims_list, lambda_list)
 
     # print the test accuracy
-    print("The training accuracy rate: {}".format(accuracy(X_train, parameters, Y_train)[-7:]))
-    print("The test accuracy rate: {}".format(accuracy(X_test, parameters, Y_test)[-7:]))
+    print("The test accuracy rate: ", accuracy(X_test, parameters, Y_test))
 
 
 
