@@ -21,7 +21,7 @@ def main():
     layers_dims_list = [[first, 10, 1]]
     lambda_list = [10]
 
-    parameters = cross_validation(X_train, Y_train, X_valid, Y_valid, layers_dims_list, lambda_list, hidden_layers_activation_fn="tanh")
+    parameters = cross_validation(X_train, Y_train, X_valid, Y_valid, layers_dims_list, lambda_list, hidden_layers_activation_fn="sigmoid", with_momentum=True)
 
     # print the test accuracy
     print("The test accuracy rate: ", accuracy(X_test, parameters, Y_test))

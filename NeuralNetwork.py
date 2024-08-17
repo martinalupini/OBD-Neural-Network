@@ -172,7 +172,7 @@ def L_model_backward_reg(AL, y, caches, hidden_layers_activation_fn="relu",
 
 def model_with_regularization(
         X, y, layers_dims, learning_rate=0.01,  num_epochs=3000,
-        print_cost=False, hidden_layers_activation_fn="relu", lambd=0, is_L2=True):
+        print_cost=False, hidden_layers_activation_fn="relu", lambd=0, with_momentum=True, is_L2=True):
     """
     Implements L-Layer neural network.
 
@@ -208,7 +208,7 @@ def model_with_regularization(
     np.random.seed(1)
 
     # initialize parameters
-    parameters = initialize_parameters(layers_dims)
+    parameters, previous_parameters = initialize_parameters(layers_dims)
 
     # intialize cost list
     cost_list = []
@@ -228,7 +228,7 @@ def model_with_regularization(
             AL, y, caches, hidden_layers_activation_fn, lambd, is_L2)
 
         # update parameters
-        parameters = update_parameters(parameters, grads, learning_rate)
+        parameters, previous_parameters = update_parameters(parameters, grads, learning_rate, previous_parameters, with_momentum)
 
         # print cost
         if (i + 1) % 100 == 0 and print_cost:
@@ -262,6 +262,7 @@ def initialize_parameters(layers_dims):
     """
     np.random.seed(1)
     parameters = {}
+    previous_parameters = {}
     L = len(layers_dims)
 
     for l in range(1, L):
@@ -269,11 +270,14 @@ def initialize_parameters(layers_dims):
             layers_dims[l], layers_dims[l - 1]) * 0.01
         parameters["b" + str(l)] = np.zeros((layers_dims[l], 1))
 
+        previous_parameters["W" + str(l)] = np.zeros((layers_dims[l], layers_dims[l - 1]))
+        previous_parameters["b" + str(l)] = np.zeros((layers_dims[l], 1))
+
         assert parameters["W" + str(l)].shape == (
             layers_dims[l], layers_dims[l - 1])
         assert parameters["b" + str(l)].shape == (layers_dims[l], 1)
 
-    return parameters
+    return parameters, previous_parameters
 
 # Define helper functions that will be used in L-model forward prop
 def linear_forward(A_prev, W, b):
@@ -388,7 +392,7 @@ def L_model_forward(X, parameters, hidden_layers_activation_fn="relu"):
     return AL, caches
 
 # define the function to update both weight matrices and bias vectors
-def update_parameters(parameters, grads, learning_rate):
+def update_parameters(parameters, grads, learning_rate, previous_parameters, with_momentum=True, momentum=0.9):
     """
     Update the parameters' values using gradient descent rule.
 
@@ -405,14 +409,22 @@ def update_parameters(parameters, grads, learning_rate):
         updated parameters.
     """
     L = len(parameters) // 2
+    prev_parameters = parameters
 
     for l in range(1, L + 1):
-        parameters["W" + str(l)] = parameters[
-                                       "W" + str(l)] - learning_rate * grads["dW" + str(l)]
-        parameters["b" + str(l)] = parameters[
-                                       "b" + str(l)] - learning_rate * grads["db" + str(l)]
+        if with_momentum:
+            parameters["W" + str(l)] = parameters[
+                                       "W" + str(l)] - learning_rate * grads["dW" + str(l)] + momentum * (parameters["W" + str(l)] - previous_parameters["W" + str(l)])
+            parameters["b" + str(l)] = parameters[
+                                       "b" + str(l)] - learning_rate * grads["db" + str(l)] + momentum * (parameters["b" + str(l)] - previous_parameters["b" + str(l)])
+        else:
+            parameters["W" + str(l)] = parameters[
+                                           "W" + str(l)] - learning_rate * grads["dW" + str(l)]
+            parameters["b" + str(l)] = parameters[
+                                           "b" + str(l)] - learning_rate * grads["db" + str(l)]
 
-    return parameters
+
+    return parameters, prev_parameters
 
 
 def accuracy(X, parameters, y, activation_fn="relu"):
