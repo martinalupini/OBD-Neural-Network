@@ -45,7 +45,7 @@ def compute_cost_reg(AL, y, parameters, lambd=0, is_L2=True):
     return cost
 
 
-def linear_backword_reg(dZ, cache, lambd=0, is_L2=True):
+def linear_backward_reg(dZ, cache, lambd=0, is_L2=True):
     """
     Computes the gradient of the output w.r.t weight, bias, & post-activation
     output of (l - 1) layers at layer l.
@@ -113,15 +113,15 @@ def linear_activation_backward_reg(dA, cache, activation_fn="relu", lambd=0, is_
 
     if activation_fn == "sigmoid":
         dZ = sigmoid_gradient(dA, activation_cache)
-        dA_prev, dW, db = linear_backword_reg(dZ, linear_cache, lambd, is_L2)
+        dA_prev, dW, db = linear_backward_reg(dZ, linear_cache, lambd, is_L2)
 
     elif activation_fn == "tanh":
         dZ = tanh_gradient(dA, activation_cache)
-        dA_prev, dW, db = linear_backword_reg(dZ, linear_cache, lambd, is_L2)
+        dA_prev, dW, db = linear_backward_reg(dZ, linear_cache, lambd, is_L2)
 
     elif activation_fn == "relu":
         dZ = relu_gradient(dA, activation_cache)
-        dA_prev, dW, db = linear_backword_reg(dZ, linear_cache, lambd, is_L2)
+        dA_prev, dW, db = linear_backward_reg(dZ, linear_cache, lambd, is_L2)
 
     return dA_prev, dW, db
 
@@ -212,6 +212,7 @@ def model_with_regularization(
 
     # intialize cost list
     cost_list = []
+    grad_list = []
 
     # implement gradient descent
     for i in range(num_epochs):
@@ -235,16 +236,10 @@ def model_with_regularization(
                 (i + 1), reg_cost))
 
         # append cost
-        if i % 100 == 0:
-            cost_list.append(reg_cost)
+        cost_list.append(reg_cost)
+        grad_list.append(grads)
 
-    # plot the cost curve
-    plt.plot(cost_list)
-    plt.xlabel("Iterations (per hundreds)")
-    plt.ylabel("Cost")
-    plt.title("Cost curve for the learning rate = {}".format(learning_rate))
-
-    return parameters, reg_cost
+    return parameters, reg_cost, cost_list
 
 # Initialize parameters
 def initialize_parameters(layers_dims):

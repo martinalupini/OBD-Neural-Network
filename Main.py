@@ -3,9 +3,8 @@ import pandas as pd
 import h5py
 
 from sklearn.preprocessing import StandardScaler
-
-from NeuralNetwork import *
 from CrossValidation import *
+
 
 def main():
     np.random.seed(123456)
@@ -18,10 +17,11 @@ def main():
     # set up layers dimensions
     first = X_train.shape[0]
     #layers_dims_list = [[first, 10, 1], [first, 10, 10, 1], [first, 20, 1], [first, 20, 20, 1]]
+    #lambda_list = [0, 0.1, 10, 50]
     layers_dims_list = [[first, 10, 1]]
-    lambda_list = [0, 0.1, 10, 50]
+    lambda_list = [10]
 
-    parameters = cross_validation(X_train, Y_train, X_valid, Y_valid, layers_dims_list, lambda_list)
+    parameters = cross_validation(X_train, Y_train, X_valid, Y_valid, layers_dims_list, lambda_list, hidden_layers_activation_fn="tanh")
 
     # print the test accuracy
     print("The test accuracy rate: ", accuracy(X_test, parameters, Y_test))

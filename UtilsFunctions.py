@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 # Define activation functions that will be used in forward propagation
 def sigmoid(Z):
@@ -175,7 +176,7 @@ def relu_gradient(dA, Z):
 
 
 # define helper functions that will be used in L-model back-prop
-def linear_backword(dZ, cache):
+def linear_backward(dZ, cache):
     """
     Computes the gradient of the output w.r.t weight, bias, and post-activation
     output of (l - 1) layers at layer l.
@@ -209,6 +210,7 @@ def linear_backword(dZ, cache):
 
     return dA_prev, dW, db
 
+
 def dictionary_to_vector(params_dict):
     """
     Roll a dictionary into a single vector.
@@ -233,3 +235,17 @@ def dictionary_to_vector(params_dict):
         count += 1
 
     return theta_vector
+
+
+
+def plotError(error_list, num_iterations, hidden_layers_activation_fn):
+    iterations = list(range(0, num_iterations))
+    plt.figure(figsize=(10, 6))
+    plt.plot(iterations, error_list, marker='o', linestyle='-', color='b', linewidth=1.5)
+    plt.xlabel('Number of training iterations')
+    plt.ylabel('Error')
+    plt.title('Error through training')
+    plt.grid(True)
+    plt.show()
+    plt.savefig('plots/error' + hidden_layers_activation_fn + '_error.png')
+    plt.close()
