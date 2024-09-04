@@ -452,7 +452,7 @@ def accuracy(X, parameters, y, activation_fn="relu"):
     accuracy = np.mean(labels == y) * 100
 
     #print(probs)
-    #print(labels)
+    print(labels)
     #print(y)
 
     return accuracy
