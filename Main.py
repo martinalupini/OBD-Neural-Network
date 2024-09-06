@@ -65,7 +65,7 @@ def main():
     layers_dims_list = [[first, 16, 8, 1], [first, 16, 16, 1], [first, 32, 16, 1], [first, 32, 32, 1], [first, 64, 32, 1], [first, 64, 64, 1], [first, 128, 64, 1], [first, 128, 128, 1]]
 
     print("Starting cross validation at ", datetime.now().time())
-    parameters = cross_validation(X_train, Y_train, X_valid, Y_valid, layers_dims_list, lambda_l1_list, lambda_l2_list, hidden_layers_activation_fn=activation_function, with_momentum=True, num_epochs=80)
+    parameters = cross_validation(X_train, Y_train, X_valid, Y_valid, layers_dims_list, lambda_l1_list, lambda_l2_list, hidden_layers_activation_fn=activation_function, with_momentum=True, num_epochs=num_epoch)
 
     # print the test accuracy
     print("The test accuracy rate: ", accuracy(X_test, parameters, Y_test, activation_function), "%")
