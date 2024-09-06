@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
+# Splits the dataset in training, validation and testing set and standardizes the data
 def preprocess(dataset: pd.DataFrame, label_name: str):
     preprocessed_dataset = dataset
     # removing lines with null values
@@ -38,6 +39,8 @@ def preprocess(dataset: pd.DataFrame, label_name: str):
 
     return X_train, Y_train, X_valid, Y_valid, X_test, Y_test
 
+
+# Balances the dataset in order to have the same number of positive and negative instances
 def balance_dataset(dataset: pd.DataFrame, label_name: str, percent):
     dataset_0 = dataset[dataset[label_name] == 0]
     dataset_1 = dataset[dataset[label_name] == 1]
