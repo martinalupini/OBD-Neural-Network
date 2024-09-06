@@ -37,3 +37,16 @@ def preprocess(dataset: pd.DataFrame, label_name: str):
     Y_test = Y_test.reshape(-1, other_set_samples)
 
     return X_train, Y_train, X_valid, Y_valid, X_test, Y_test
+
+def balance_dataset(dataset: pd.DataFrame, label_name: str, percent):
+    dataset_0 = dataset[dataset[label_name] == 0]
+    dataset_1 = dataset[dataset[label_name] == 1]
+
+    dataset_0 = dataset_0.sample(frac=percent, random_state=42)
+    dataset_1 = dataset_1.sample(frac=percent, random_state=42)
+
+    balanced_dataset = pd.concat([dataset_0, dataset_1])
+
+    balanced_dataset = balanced_dataset.sample(frac=1, random_state=42).reset_index(drop=True)
+
+    return balanced_dataset

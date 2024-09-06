@@ -103,7 +103,7 @@ def compute_cost(AL, y):
     """
     m = y.shape[1]
     cost = - (1 / m) * np.sum(
-        np.multiply(y, np.log(AL)) + np.multiply(1 - y, np.log(1 - AL)))
+        np.multiply(y, np.log(AL + 1e-16)) + np.multiply(1 - y, np.log(1 - AL + 1e-16)))
 
     return cost
 

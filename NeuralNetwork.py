@@ -36,8 +36,10 @@ def compute_cost_reg(AL, y, parameters, lambd=0, is_L2=True):
     # compute the regularization penalty
     if is_L2:
         regularization_penalty = (lambd / (2 * m)) * np.sum(np.square(parameters_vector))
-    else:
+    elif not is_L2:
         regularization_penalty = (lambd / (2 * m)) * np.sum(np.abs(parameters_vector))
+    else:
+        regularization_penalty = 0
 
     # compute the total cost
     cost = cross_entropy_cost + regularization_penalty
@@ -75,7 +77,7 @@ def linear_backward_reg(dZ, cache, lambd=0, is_L2=True):
     if(is_L2):
         dW = (1 / m) * np.dot(dZ, A_prev.T) + (lambd / m) * W
     else:
-        dW = (1 / m) * np.dot(dZ, A_prev.T) + (lambd / m)
+        dW = (1 / m) * np.dot(dZ, A_prev.T) + (lambd / m) * np.sign(W)
     db = (1 / m) * np.sum(dZ, axis=1, keepdims=True)
     dA_prev = np.dot(W.T, dZ)
 
@@ -155,7 +157,8 @@ def L_model_backward_reg(AL, y, caches, hidden_layers_activation_fn="relu",
     L = len(caches)
     grads = {}
 
-    dAL = np.divide(AL - y, np.multiply(AL, 1 - AL))
+    epsilon = 1e-8
+    dAL = np.divide(AL - y, np.multiply(AL, 1 - AL) + epsilon)
 
     grads["dA" + str(L - 1)], grads["dW" + str(L)], grads["db" + str(L)] = \
         linear_activation_backward_reg(dAL, caches[L - 1], "sigmoid", lambd, is_L2)
@@ -213,33 +216,41 @@ def model_with_regularization(
     # intialize cost list
     cost_list = []
     grad_list = []
+    accuracy_list = []
 
-    # implement gradient descent
+    decay = 0
+
     for i in range(num_epochs):
-        # compute forward propagation
-        AL, caches = L_model_forward(
-            X, parameters, hidden_layers_activation_fn)
 
-        # compute regularized cost
+        diminishing_stepsize = learning_rate / (1 + decay * i)
+
+        # Creare mini-batch
+        mini_batches = create_mini_batches(X, y, 64)
+
+        for mini_batch in mini_batches:
+            (mini_batch_X, mini_batch_y) = mini_batch
+
+            # Forward propagation
+            AL, caches = L_model_forward(mini_batch_X, parameters, hidden_layers_activation_fn)
+
+            # Calcolare il costo regolarizzato
+            reg_cost = compute_cost_reg(AL, mini_batch_y, parameters, lambd, is_L2)
+
+            # Backward propagation
+            grads = L_model_backward_reg(AL, mini_batch_y, caches, hidden_layers_activation_fn, lambd, is_L2)
+
+            # Aggiornare i parametri con o senza momentum
+            parameters, previous_parameters = update_parameters(parameters, grads, diminishing_stepsize, previous_parameters, with_momentum)
+
+
+        AL, caches = L_model_forward(X, parameters, hidden_layers_activation_fn)
         reg_cost = compute_cost_reg(AL, y, parameters, lambd, is_L2)
-
-        # compute gradients
-        grads = L_model_backward_reg(
-            AL, y, caches, hidden_layers_activation_fn, lambd, is_L2)
-
-        # update parameters
-        parameters, previous_parameters = update_parameters(parameters, grads, learning_rate, previous_parameters, with_momentum)
-
-        # print cost
-        if (i + 1) % 100 == 0 and print_cost:
-            print("The cost after {} iterations: {}".format(
-                (i + 1), reg_cost))
-
+        accuracy_epoch = accuracy(X, parameters, y, hidden_layers_activation_fn)
         # append cost
         cost_list.append(reg_cost)
-        grad_list.append(grads)
+        accuracy_list.append(accuracy_epoch)
 
-    return parameters, reg_cost, cost_list
+    return parameters, reg_cost, cost_list, accuracy_list
 
 # Initialize parameters
 def initialize_parameters(layers_dims):
@@ -267,7 +278,8 @@ def initialize_parameters(layers_dims):
 
     for l in range(1, L):
         parameters["W" + str(l)] = np.random.randn(
-            layers_dims[l], layers_dims[l - 1]) * 0.01
+            layers_dims[l],
+            layers_dims[l - 1]) * np.sqrt(2 / layers_dims[l - 1])
         parameters["b" + str(l)] = np.zeros((layers_dims[l], 1))
 
         previous_parameters["W" + str(l)] = np.zeros((layers_dims[l], layers_dims[l - 1]))
@@ -391,6 +403,7 @@ def L_model_forward(X, parameters, hidden_layers_activation_fn="relu"):
 
     return AL, caches
 
+
 # define the function to update both weight matrices and bias vectors
 def update_parameters(parameters, grads, learning_rate, previous_parameters, with_momentum=True, momentum=0.9):
     """
@@ -427,7 +440,7 @@ def update_parameters(parameters, grads, learning_rate, previous_parameters, wit
     return parameters, prev_parameters
 
 
-def accuracy(X, parameters, y, activation_fn="relu"):
+def accuracy(X, parameters, y, activation_fn):
     """
     Computes the average accuracy rate.
 
@@ -451,8 +464,46 @@ def accuracy(X, parameters, y, activation_fn="relu"):
     labels = (probs >= 0.5) * 1
     accuracy = np.mean(labels == y) * 100
 
-    #print(probs)
-    print(labels)
-    #print(y)
-
     return accuracy
+
+
+def create_mini_batches(X, y, mini_batch_size):
+    """
+    Suddivide il set di dati in mini-batch.
+
+    Arguments
+    ---------
+    X : 2d-array
+        Input di dimensione (input_size, numero di esempi).
+    y : 2d-array
+        Etichette di dimensione (1, numero di esempi).
+    mini_batch_size : int
+        Dimensione di ciascun mini-batch.
+
+    Returns
+    -------
+    mini_batches : list
+        Una lista di tuple (mini_batch_X, mini_batch_y).
+    """
+    m = X.shape[1]  # numero di esempi
+    mini_batches = []
+
+    # Mischiare il set di dati
+    permutation = np.random.permutation(m)
+    shuffled_X = X[:, permutation]
+    shuffled_y = y[:, permutation]
+
+    # Creare i mini-batch
+    num_complete_minibatches = m // mini_batch_size  # Numero di batch completi
+    for k in range(num_complete_minibatches):
+        mini_batch_X = shuffled_X[:, k * mini_batch_size:(k + 1) * mini_batch_size]
+        mini_batch_y = shuffled_y[:, k * mini_batch_size:(k + 1) * mini_batch_size]
+        mini_batches.append((mini_batch_X, mini_batch_y))
+
+    # Gestire il caso in cui rimangano esempi non sufficienti per un batch completo
+    if m % mini_batch_size != 0:
+        mini_batch_X = shuffled_X[:, num_complete_minibatches * mini_batch_size:]
+        mini_batch_y = shuffled_y[:, num_complete_minibatches * mini_batch_size:]
+        mini_batches.append((mini_batch_X, mini_batch_y))
+
+    return mini_batches

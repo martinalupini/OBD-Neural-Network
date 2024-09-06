@@ -1,5 +1,5 @@
 import csv
-
+import os
 
 def add_csv_line(modello, reg, lambd, tr_acc, val_acc):
     # Apro il file in modalità 'append' per aggiungere righe senza sovrascrivere
@@ -15,3 +15,13 @@ def add_csv_line(modello, reg, lambd, tr_acc, val_acc):
 
         # Aggiungo la riga passata come argomento
         writer.writerow(nuova_riga)
+
+
+def clear_folder(directory):
+
+    file_list = os.listdir(directory)
+
+    for file_name in file_list:
+        file_path = os.path.join(directory, file_name)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
