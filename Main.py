@@ -38,8 +38,9 @@ def main():
 
     # set up layers dimensions
     first = X_train.shape[0]
-    layers_dims_list = [[first, 64, 128, 1], [first, 128, 256, 1], [first, 256, 256, 1]]
-    lambda_list = [0.01, 0.5, 5]
+    #layers_dims_list = [[first, 64, 128, 1], [first, 128, 256, 1], [first, 256, 256, 1]]
+    lambda_list = [0.001, 0.1, 0.5, 1]
+    layers_dims_list = [[first, 32, 32, 1], [first, 32, 64, 1], [first, 64, 32, 1], [first, 64, 64, 1], [first, 128, 256, 1], [first, 256, 128, 1], [first, 128, 128, 1]]
 
     parameters = cross_validation(X_train, Y_train, X_valid, Y_valid, layers_dims_list, lambda_list, hidden_layers_activation_fn=activation_function, with_momentum=True, num_epochs=6000, reg_type=reg_type)
 

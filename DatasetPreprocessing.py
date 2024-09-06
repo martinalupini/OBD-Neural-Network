@@ -21,8 +21,8 @@ def preprocess(dataset: pd.DataFrame, label_name: str):
     # creating a matrix with the rows of the dataset
     samples_matrix = standardized_matrix
     samples_number: int = samples_matrix.shape[0]
-    train_set_samples = int(samples_number * 0.7)
-    other_set_samples = int(samples_number * 0.15)
+    train_set_samples = int(samples_number * 0.6)
+    other_set_samples = int(samples_number * 0.2)
     valid_ind = train_set_samples + other_set_samples
 
     # dividing the dataset
