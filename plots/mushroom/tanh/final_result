@@ -1,0 +1,5 @@
+Time spent for cross validation is 13:42.05803322792053 min
+
+Best configuration is [8, 256, 256, 1] using no regularization
+
+The test accuracy rate: 93.43200740055504%

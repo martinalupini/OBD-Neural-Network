@@ -1,9 +1,9 @@
 import csv
 import os
 
-def add_csv_line(modello, reg, lambd, tr_acc, val_acc):
+def add_csv_line(modello, reg, lambd, tr_acc, val_acc, dir, activation_fn):
     # Apro il file in modalità 'append' per aggiungere righe senza sovrascrivere
-    with open('csv_files/results.csv', mode='a', newline='') as file:
+    with open('plots/' + dir + '/' + activation_fn + '/results.csv', mode='a', newline='') as file:
         nomi_colonne = ['modello', 'reg', 'lambda', 'tr acc', 'val acc']
         nuova_riga = {'modello': modello, 'reg': reg, 'lambda': lambd, 'tr acc': tr_acc, 'val acc': val_acc}
 

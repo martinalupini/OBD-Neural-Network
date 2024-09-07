@@ -9,10 +9,8 @@ def main():
     np.random.seed(123456)
     np.set_printoptions(suppress=True)
 
-    clear_folder("./csv_files")
-
     dataset = menu(
-        "What dataset do you want to use?\n[1] mushroom classification (6484 instances)\n[2] bank churn (21000 instances)\n[3] alzheimers disease (2000 instances)",
+        "What dataset do you want to use?\n[1] mushroom classification (6000 instances)\n[2] bank churn (20000 instances)\n[3] alzheimers disease (2000 instances)",
         ["1", "2", "3"]
     )
 
@@ -29,36 +27,45 @@ def main():
         dataset = pd.read_csv("./datasets/mushroom.csv")
         label_name = "class"
         dir = "mushroom"
-        dataset = balance_dataset(dataset, label_name, 0.2)
+        dataset = resize_dataset(dataset, label_name, 0.2)
+        num_epoch = 50
+        mini_batch_size=64
     elif dataset == "2":
         dataset = pd.read_csv("./datasets/bank_churn.csv")
         label_name = "Exited"
         dir = "bank"
-        dataset = balance_dataset(dataset, label_name, 0.2)
+        dataset = resize_dataset(dataset, label_name, 0.2)
+        num_epoch = 100
+        mini_batch_size = 512
     else:
         dataset = pd.read_csv("./datasets/alzheimers_disease_data.csv")
         label_name = "Diagnosis"
         dir = "alzheimer"
+        num_epoch = 40
+        mini_batch_size = 256
 
-    # clearing previous plots
-    clear_folder("./plots/" + dir + "/" + activation_function + "/accuracy")
-    clear_folder("./plots/" + dir + "/" + activation_function + "/error")
+    # clearing previous plots and files
+    clear_folder("./plots/" + dir + "/" + activation_function)
+    if os.path.exists("./plots/" + dir + "/results.csv"):
+        os.remove("./plots/" + dir + "/results.csv")
 
     # dataset preprocessing
-    X_train, Y_train, X_valid, Y_valid, X_test, Y_test = preprocess(dataset, label_name)
+    X_train, Y_train, X_valid, Y_valid, X_test, Y_test = preprocess(dataset, label_name, dir)
 
     # set up layers dimensions
     first = X_train.shape[0]
 
-    if first < 10:
-        lambda_l1_list = [1e-4, 1e-3]
+    if first < 30:
+        lambda_l1_list = [1e-3, 5e-3]
         lambda_l2_list = [0.01, 0.1, 0.5]
     else:
         lambda_l1_list = [0.5, 1, 1.2]
         lambda_l2_list = [0.1, 0.5, 4.5]
     layers_dims_list = [[first, 32, 32, 1], [first, 64, 32, 1], [first, 64, 64, 1], [first, 128, 64, 1], [first, 128, 128, 1], [first, 256, 128, 1], [first, 256, 256, 1]]
 
-    parameters = cross_validation(X_train, Y_train, X_valid, Y_valid, layers_dims_list, lambda_l1_list, lambda_l2_list, dir, hidden_layers_activation_fn=activation_function, with_momentum=True, num_epochs=50, print_debug=True)
+    parameters = cross_validation(X_train, Y_train, X_valid, Y_valid, layers_dims_list, lambda_l1_list, lambda_l2_list,
+                                  dir, hidden_layers_activation_fn=activation_function, with_momentum=True,
+                                  num_epochs=num_epoch, print_debug=True, mini_batch_size=mini_batch_size)
 
     # print the test accuracy
     text = "The test accuracy rate: " + str(accuracy(X_test, parameters, Y_test, activation_function)) + "%"

@@ -91,7 +91,7 @@ def L_model_backward_reg(AL, y, caches, hidden_layers_activation_fn="relu",
 
 
 def model_with_regularization(
-        X, y, layers_dims, dir, learning_rate=0.01, num_epochs=50, hidden_layers_activation_fn="relu", lambd=0, with_momentum=True, is_L2=True):
+        X, y, layers_dims, dir, learning_rate=0.01, num_epochs=50, hidden_layers_activation_fn="relu", lambd=0, with_momentum=True, is_L2=True, mini_batch_size=64):
 
     # get number of examples
     m = X.shape[1]
@@ -104,7 +104,6 @@ def model_with_regularization(
 
     # intialize cost list
     cost_list = []
-    grad_list = []
     accuracy_list = []
 
     decay = 0
@@ -114,7 +113,7 @@ def model_with_regularization(
         diminishing_stepsize = learning_rate / (1 + decay * i)
 
         # Creare mini-batch
-        mini_batches = create_mini_batches(X, y, 64)
+        mini_batches = create_mini_batches(X, y, mini_batch_size)
 
         for mini_batch in mini_batches:
             (mini_batch_X, mini_batch_y) = mini_batch
