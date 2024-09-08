@@ -4,10 +4,10 @@ import time
 from NeuralNetwork import *
 from PlotUtils import *
 from FileUtils import *
-from datetime import datetime
+import concurrent.futures
 
 
-def cross_validation(X_train, Y_train, X_valid, Y_valid, layers_dims_list, lambda_l1_list, lambda_l2_list, dir, hidden_layers_activation_fn="relu", with_momentum=True, learning_rate=0.01,  num_epochs=50, print_debug=True, mini_batch_size=64):
+def cross_validation(X_train, Y_train, X_valid, Y_valid, layers_dims_list, lambda_l1_list, lambda_l2_list, dir, hidden_layers_activation_fn="relu", with_momentum=True, learning_rate=0.01, num_epochs=50, print_debug=True, mini_batch_size=64):
 
     best_parameters = None
     best_accuracy: float = 0.0
@@ -15,122 +15,92 @@ def cross_validation(X_train, Y_train, X_valid, Y_valid, layers_dims_list, lambd
     best_lambda = None
     error_list_final_model = None
     accuracy_list_final_model = None
+    reg_type = None
 
     start = time.time()
 
-    for layers_dims in layers_dims_list:
-
-        if print_debug:
-            print("***********************************************************************************************")
-            print("                         MODEL: ", layers_dims, " NO REGULARIZATION                            ")
-            print("***********************************************************************************************")
-
-        parameters, error, error_list, accuracy_list = model_with_regularization(X_train, Y_train, layers_dims, dir,
-                                                                    learning_rate, num_epochs, hidden_layers_activation_fn,
-                                                                  0, with_momentum, mini_batch_size=mini_batch_size)
+    def evaluate_model(layers_dims, lambd, reg_type):
+        if reg_type == "none":
+            parameters, error, error_list, accuracy_list = model_with_regularization(
+                X_train, Y_train, layers_dims, dir, learning_rate, num_epochs, hidden_layers_activation_fn,
+                0, with_momentum, mini_batch_size=mini_batch_size)
+        elif reg_type == "L1":
+            parameters, error, error_list, accuracy_list = model_with_regularization(
+                X_train, Y_train, layers_dims, dir, learning_rate, num_epochs, hidden_layers_activation_fn,
+                lambd, with_momentum, False, mini_batch_size=mini_batch_size)
+        else:  # L2
+            parameters, error, error_list, accuracy_list = model_with_regularization(
+                X_train, Y_train, layers_dims, dir, learning_rate, num_epochs, hidden_layers_activation_fn,
+                lambd, with_momentum, True, mini_batch_size=mini_batch_size)
 
         validation_accuracy = accuracy(X_valid, parameters, Y_valid, hidden_layers_activation_fn)
         training_accuracy = accuracy(X_train, parameters, Y_train, hidden_layers_activation_fn)
 
         if print_debug:
-            print("The training accuracy rate with no regularization: ", training_accuracy)
-            print("The validation accuracy rate with no regularization: ", validation_accuracy)
-        add_csv_line(layers_dims, "none", "none", training_accuracy, validation_accuracy, dir, hidden_layers_activation_fn,)
+            print(f"The training accuracy rate for model {layers_dims} with {reg_type} regularization and lambda {lambd}: ", training_accuracy)
+            print(f"The validation accuracy rate for model {layers_dims} with {reg_type} regularization and lambda {lambd}: ", validation_accuracy)
 
-        # Different scenarios: accuracy and cost are both better, accuracy or error is significantly better
-        if validation_accuracy > best_accuracy :
-            best_accuracy = validation_accuracy
-            best_parameters = parameters
-            best_dim = layers_dims
-            best_lambda = 0
-            error_list_final_model = error_list
-            accuracy_list_final_model = accuracy_list
-            reg_type = "no regularization"
-        model_name = str(layers_dims)+"_noREG.png"
-        #plotError(error_list, len(error_list), dir, model_name, hidden_layers_activation_fn)
-        #plotAccuracy(accuracy_list, len(accuracy_list), dir, model_name, hidden_layers_activation_fn)
+        return {
+            'parameters': parameters,
+            'validation_accuracy': validation_accuracy,
+            'training_accuracy': training_accuracy,
+            'layers_dims': layers_dims,
+            'lambda': lambd,
+            'error_list': error_list,
+            'accuracy_list': accuracy_list,
+            'reg_type': reg_type
+        }
 
-        for lambd in lambda_l1_list:
+    def update_best_model(result):
+        nonlocal best_accuracy, best_parameters, best_dim, best_lambda, error_list_final_model, accuracy_list_final_model, reg_type
+        if result['validation_accuracy'] > best_accuracy:
+            best_accuracy = result['validation_accuracy']
+            best_parameters = result['parameters']
+            best_dim = result['layers_dims']
+            best_lambda = result['lambda']
+            error_list_final_model = result['error_list']
+            accuracy_list_final_model = result['accuracy_list']
+            reg_type = result['reg_type']
 
-            if print_debug:
-                print("***********************************************************************************************")
-                print("                 MODEL: ", layers_dims, " L1 regularization lambda: ", lambd, "                ")
-                print("***********************************************************************************************")
+    results = []
 
-            parameters, error, error_list, accuracy_list = model_with_regularization(X_train, Y_train, layers_dims, dir,
-                                                                          learning_rate, num_epochs, hidden_layers_activation_fn,
-                                                                          lambd, with_momentum, False, mini_batch_size=mini_batch_size)
+    # Parallel processing using ThreadPoolExecutor
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = []
+        for layers_dims in layers_dims_list:
+            futures.append(executor.submit(evaluate_model, layers_dims, None, "none"))
+            for lambd in lambda_l1_list:
+                futures.append(executor.submit(evaluate_model, layers_dims, lambd, "L1"))
+            for lambd in lambda_l2_list:
+                futures.append(executor.submit(evaluate_model, layers_dims, lambd, "L2"))
 
-            validation_accuracy = accuracy(X_valid, parameters, Y_valid, hidden_layers_activation_fn)
-            training_accuracy = accuracy(X_train, parameters, Y_train, hidden_layers_activation_fn)
+        # Aspetta che tutti i thread siano completati
+        concurrent.futures.wait(futures)
 
-            if print_debug:
-                print("The training accuracy rate with L1 regularization: ", training_accuracy)
-                print("The validation accuracy rate with L1 regularization: ", validation_accuracy)
-            add_csv_line(layers_dims, "L1", lambd, training_accuracy, validation_accuracy, dir, hidden_layers_activation_fn)
+        # Raccolta dei risultati da tutti i thread completati
+        for future in futures:
+            result = future.result()  # Estrai il risultato da ciascun future
+            results.append(result)
 
-            # Different scenarios: accuracy and cost are both better, accuracy or error is significantly better
-            if validation_accuracy > best_accuracy :
-                best_accuracy = validation_accuracy
-                best_parameters = parameters
-                best_dim = layers_dims
-                best_lambda = lambd
-                error_list_final_model = error_list
-                accuracy_list_final_model = accuracy_list
-                reg_type = "L1 regularization"
-
-            model_name = str(layers_dims)+"_L1_" + str(lambd)+ ".png"
-            #plotError(error_list, len(error_list), dir, model_name, hidden_layers_activation_fn)
-            #plotAccuracy(accuracy_list, len(accuracy_list), dir, model_name, hidden_layers_activation_fn)
-
-        for lambd in lambda_l2_list:
-
-            if print_debug:
-                print("***********************************************************************************************")
-                print("                 MODEL: ", layers_dims, " L2 regularization lambda: ", lambd, "                ")
-                print("***********************************************************************************************")
-
-            parameters, error, error_list, accuracy_list = model_with_regularization(X_train, Y_train, layers_dims, dir,
-                                                                          learning_rate, num_epochs, hidden_layers_activation_fn,
-                                                                          lambd, with_momentum, True, mini_batch_size=mini_batch_size)
-
-            validation_accuracy = accuracy(X_valid, parameters, Y_valid, hidden_layers_activation_fn)
-            training_accuracy = accuracy(X_train, parameters, Y_train, hidden_layers_activation_fn)
-
-            if print_debug:
-                print("The training accuracy rate with L2 regularization: ", training_accuracy)
-                print("The validation accuracy rate with L2 regularization: ", validation_accuracy)
-            add_csv_line(layers_dims, "L2", lambd, training_accuracy, validation_accuracy, dir, hidden_layers_activation_fn)
-
-            # Different scenarios: accuracy and cost are both better, accuracy or error is significantly better
-            if validation_accuracy > best_accuracy :
-                best_accuracy = validation_accuracy
-                best_parameters = parameters
-                best_dim = layers_dims
-                best_lambda = lambd
-                error_list_final_model = error_list
-                accuracy_list_final_model = accuracy_list
-                reg_type = "L2 regularization"
-
-            model_name = str(layers_dims)+"_L2_" + str(lambd)+ ".png"
-            #plotError(error_list, len(error_list), dir, model_name, hidden_layers_activation_fn)
-            #plotAccuracy(accuracy_list, len(accuracy_list), dir, model_name, hidden_layers_activation_fn)
+    for result in results:
+        add_csv_line(result['layers_dims'], result['reg_type'], result['lambda'], result['training_accuracy'], result['validation_accuracy'], dir, hidden_layers_activation_fn)
+        update_best_model(result)
 
     end = time.time()
     min, sec = divmod(end - start, 60)
-
     print(f"Time spent for cross validation is {int(min)}:{sec:.2f} min")
 
-    if reg_type == "no regularization":
-        text = "Best configuration is " + str(best_dim) + " using " + reg_type
+    if reg_type == "none":
+        text = f"Best configuration is {best_dim} using no regularization"
     else:
-        text = "Best configuration is " + str(best_dim) + " using " + reg_type + " with lambda " + str(best_lambda)
+        text = f"Best configuration is {best_dim} using {reg_type} with lambda {best_lambda}"
 
     print(text)
-    with open('plots/' + dir + '/' + hidden_layers_activation_fn + '/final_result', "w") as file:
-        file.write("Time spent for cross validation is " + str(int(min)) + ":" + str(sec) + " min\n\n")
+    with open(f'plots/{dir}/{hidden_layers_activation_fn}/final_result', "w") as file:
+        file.write(f"Time spent for cross validation is {int(min)}:{sec:.2f} min\n\n")
         file.write(text + "\n\n")
 
     plotError(error_list_final_model, len(error_list_final_model), dir, activation_fn=hidden_layers_activation_fn)
     plotAccuracy(accuracy_list_final_model, len(accuracy_list_final_model), dir, activation_fn=hidden_layers_activation_fn)
+
     return best_parameters

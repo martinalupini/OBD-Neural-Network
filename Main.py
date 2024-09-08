@@ -23,7 +23,7 @@ def main():
     elif activation_function == "2":
         activation_function = "tanh"
 
-    if(dataset == "1"):
+    if dataset == "1":
         dataset = pd.read_csv("./datasets/mushroom.csv")
         label_name = "class"
         dir = "mushroom"
@@ -61,11 +61,11 @@ def main():
     else:
         lambda_l1_list = [0.5, 1]
         lambda_l2_list = [0.1, 0.5, 4.5]
-    layers_dims_list = [[first, 32, 32, 1], [first, 64, 32, 1], [first, 64, 64, 1], [first, 128, 64, 1], [first, 128, 128, 1], [first, 256, 128, 1], [first, 256, 256, 1]]
+    layers_dims_list = [[first, 64, 64, 1], [first, 128, 64, 1], [first, 128, 128, 1], [first, 256, 128, 1], [first, 256, 256, 1]]
 
     parameters = cross_validation(X_train, Y_train, X_valid, Y_valid, layers_dims_list, lambda_l1_list, lambda_l2_list,
                                   dir, hidden_layers_activation_fn=activation_function, with_momentum=True,
-                                  num_epochs=num_epoch, print_debug=True, mini_batch_size=mini_batch_size)
+                                  num_epochs=num_epoch, print_debug=False, mini_batch_size=mini_batch_size)
 
     # print the test accuracy
     text = "The test accuracy rate: " + str(accuracy(X_test, parameters, Y_test, activation_function)) + "%"
