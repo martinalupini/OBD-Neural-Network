@@ -29,20 +29,20 @@ def main():
         dir = "mushroom"
         dataset = resize_dataset(dataset, label_name, 0.2)
         num_epoch = 50
-        mini_batch_size=64
+        mini_batch_size = 64
     elif dataset == "2":
         dataset = pd.read_csv("./datasets/bank_churn.csv")
         label_name = "Exited"
         dir = "bank"
         dataset = resize_dataset(dataset, label_name, 0.2)
-        num_epoch = 100
-        mini_batch_size = 512
+        num_epoch = 50
+        mini_batch_size = 64
     else:
         dataset = pd.read_csv("./datasets/alzheimers_disease_data.csv")
         label_name = "Diagnosis"
         dir = "alzheimer"
-        num_epoch = 40
-        mini_batch_size = 256
+        num_epoch = 30
+        mini_batch_size = 64
 
     # clearing previous plots and files
     clear_folder("./plots/" + dir + "/" + activation_function)
@@ -59,7 +59,7 @@ def main():
         lambda_l1_list = [1e-3, 5e-3]
         lambda_l2_list = [0.01, 0.1, 0.5]
     else:
-        lambda_l1_list = [0.5, 1, 1.2]
+        lambda_l1_list = [0.5, 1]
         lambda_l2_list = [0.1, 0.5, 4.5]
     layers_dims_list = [[first, 32, 32, 1], [first, 64, 32, 1], [first, 64, 64, 1], [first, 128, 64, 1], [first, 128, 128, 1], [first, 256, 128, 1], [first, 256, 256, 1]]
 

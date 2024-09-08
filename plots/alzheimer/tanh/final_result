@@ -1,5 +1,5 @@
-Time spent for cross validation is 2:49.43962836265564 min
+Time spent for cross validation is 1:39.31341910362244 min
 
-Best configuration is [33, 256, 256, 1] using L1 regularization with lambda 1.2
+Best configuration is [33, 256, 256, 1] using L1 regularization with lambda 0.5
 
-The test accuracy rate: 80.46511627906978%
+The test accuracy rate: 81.16279069767441%

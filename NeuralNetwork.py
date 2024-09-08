@@ -100,7 +100,7 @@ def model_with_regularization(
     np.random.seed(1)
 
     # initialize parameters
-    parameters, previous_parameters = initialize_parameters(layers_dims)
+    parameters, previous_parameters = initialize_parameters(layers_dims, hidden_layers_activation_fn)
 
     # intialize cost list
     cost_list = []
@@ -141,25 +141,41 @@ def model_with_regularization(
     return parameters, reg_cost, cost_list, accuracy_list
 
 # Initialize parameters with he inizialization
-def initialize_parameters(layers_dims):
+def initialize_parameters(layers_dims, hidden_layers_activation_fn):
 
     np.random.seed(1)
     parameters = {}
     previous_parameters = {}
     L = len(layers_dims)
 
-    for l in range(1, L):
-        parameters["W" + str(l)] = np.random.randn(
-            layers_dims[l],
-            layers_dims[l - 1]) * np.sqrt(2 / layers_dims[l - 1])
-        parameters["b" + str(l)] = np.zeros((layers_dims[l], 1))
+    if hidden_layers_activation_fn == "relu":
 
-        previous_parameters["W" + str(l)] = np.zeros((layers_dims[l], layers_dims[l - 1]))
-        previous_parameters["b" + str(l)] = np.zeros((layers_dims[l], 1))
+        for l in range(1, L):
+            parameters["W" + str(l)] = np.random.randn(
+                layers_dims[l],
+                layers_dims[l - 1]) * np.sqrt(2 / layers_dims[l - 1])
+            parameters["b" + str(l)] = np.zeros((layers_dims[l], 1))
 
-        assert parameters["W" + str(l)].shape == (
-            layers_dims[l], layers_dims[l - 1])
-        assert parameters["b" + str(l)].shape == (layers_dims[l], 1)
+            previous_parameters["W" + str(l)] = np.zeros((layers_dims[l], layers_dims[l - 1]))
+            previous_parameters["b" + str(l)] = np.zeros((layers_dims[l], 1))
+
+            assert parameters["W" + str(l)].shape == (
+                layers_dims[l], layers_dims[l - 1])
+            assert parameters["b" + str(l)].shape == (layers_dims[l], 1)
+
+    else:
+        for l in range(1, L):
+            parameters["W" + str(l)] = np.random.randn(
+                layers_dims[l],
+                layers_dims[l - 1]) * np.sqrt(1 / layers_dims[l - 1])
+            parameters["b" + str(l)] = np.zeros((layers_dims[l], 1))
+
+            previous_parameters["W" + str(l)] = np.zeros((layers_dims[l], layers_dims[l - 1]))
+            previous_parameters["b" + str(l)] = np.zeros((layers_dims[l], 1))
+
+            assert parameters["W" + str(l)].shape == (
+                layers_dims[l], layers_dims[l - 1])
+            assert parameters["b" + str(l)].shape == (layers_dims[l], 1)
 
     return parameters, previous_parameters
 
