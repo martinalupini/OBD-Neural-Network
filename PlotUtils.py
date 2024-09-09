@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def plotError(error_list, num_iterations, dir, model_name="final_model_error", activation_fn="relu"):
     iterations = list(range(0, num_iterations))
     plt.figure(figsize=(10, 6))
@@ -9,8 +10,8 @@ def plotError(error_list, num_iterations, dir, model_name="final_model_error", a
     plt.ylabel('Loss')
     plt.title('Loss through training')
     plt.grid(True)
-    plt.show()
     plt.savefig('plots/' + dir + '/' + activation_fn + "/" + model_name + '.png')
+    plt.show()
     plt.close()
 
 

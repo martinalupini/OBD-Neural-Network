@@ -1,4 +1,4 @@
-Time spent for cross validation is 0:47.43 min
+Time spent for cross validation is 0:52.82 min
 
 Best configuration is [33, 256, 256, 1] using L1 with lambda 0.5
 
