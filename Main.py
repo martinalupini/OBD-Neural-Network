@@ -55,12 +55,8 @@ def main():
     # set up layers dimensions
     first = X_train.shape[0]
 
-    if first < 30:
-        lambda_l1_list = [1e-3, 5e-3]
-        lambda_l2_list = [0.01, 0.1, 0.5]
-    else:
-        lambda_l1_list = [0.5, 1]
-        lambda_l2_list = [0.1, 0.5, 4.5]
+    lambda_l1_list = [1e-3, 5e-3, 0.5, 1]
+    lambda_l2_list = [0.01, 0.1, 0.5, 4.5]
     layers_dims_list = [[first, 64, 64, 1], [first, 128, 64, 1], [first, 128, 128, 1], [first, 256, 128, 1], [first, 256, 256, 1]]
 
     parameters = cross_validation(X_train, Y_train, X_valid, Y_valid, layers_dims_list, lambda_l1_list, lambda_l2_list,
