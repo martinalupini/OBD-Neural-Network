@@ -18,7 +18,7 @@ def cross_validation(X_train, Y_train, X_valid, Y_valid, layers_dims_list, lambd
     reg_type = None
 
     start = time.time()
-    print("Starting cross validation. This might take time...")
+    print("\nStarting cross validation. This might take time...")
 
     def evaluate_model_CV(layers_dims, lambd, reg_type):
         if reg_type == "none":
@@ -89,7 +89,7 @@ def cross_validation(X_train, Y_train, X_valid, Y_valid, layers_dims_list, lambd
 
     end = time.time()
     min, sec = divmod(end - start, 60)
-    print(f"End cross validation. Time spent for cross validation is {int(min)}:{sec:.2f} min")
+    print(f"End cross validation. Time spent for cross validation is {int(min)}:{sec:.2f} min\n")
 
     if reg_type == "none":
         text = f"Best configuration is {best_dim} using no regularization"
