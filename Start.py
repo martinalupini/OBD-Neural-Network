@@ -15,13 +15,13 @@ def check_pip():
 
 
 # Funzione per installare un pacchetto Python
-def install_package(package_nm):
+def install_package(package_mod, package_nm):
     try:
         importlib.import_module(package_nm)
         print(f"{package_nm} è già installato.")
     except ImportError:
         print(f"{package_nm} non è installato. Installazione in corso...")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package_nm])
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package_mod])
 
 
 # Verifica se pip è installato
@@ -31,12 +31,12 @@ check_pip()
 packages = {
     "numpy": "numpy",
     "matplotlib": "matplotlib",
-    "scikit-learn": "sklearn",
+    "scikit-learn": "scikit-learn",
     "pandas": "pandas"
 }
 
 # Verifica e installa i pacchetti necessari
 for package_name, module_name in packages.items():
-    install_package(module_name)
+    install_package(module_name, package_name)
 
 print("Tutti i pacchetti sono stati verificati e installati se necessario.")
