@@ -10,7 +10,7 @@ def main():
     np.set_printoptions(suppress=True)
 
     dataset = menu(
-        "What dataset do you want to use?\n[1] mushroom classification (6000 instances)\n[2] bank churn (20000 instances)\n[3] alzheimers disease (2000 instances)",
+        "What dataset do you want to use?\n[1] mushroom classification (6000 instances)\n[2] credit card fraud (20000 instances)\n[3] alzheimers disease (2000 instances)",
         ["1", "2", "3"]
     )
 
@@ -31,17 +31,17 @@ def main():
         num_epoch = 50
         mini_batch_size = 64
     elif dataset == "2":
-        dataset = pd.read_csv("./datasets/bank_churn.csv")
-        label_name = "Exited"
-        dir = "bank"
-        dataset = resize_dataset(dataset, label_name, 0.2)
+        dataset = pd.read_csv("./datasets/fraud.csv")
+        label_name = "Class"
+        dir = "fraud"
+        dataset = resize_dataset(dataset, label_name, 0.02)
         num_epoch = 50
         mini_batch_size = 64
     else:
         dataset = pd.read_csv("./datasets/alzheimers_disease_data.csv")
         label_name = "Diagnosis"
         dir = "alzheimer"
-        num_epoch = 30
+        num_epoch = 50
         mini_batch_size = 64
 
     # clearing previous plots and files
@@ -68,7 +68,8 @@ def main():
                                   num_epochs=num_epoch, print_debug=False, mini_batch_size=mini_batch_size)
 
     # print the test accuracy
-    text = "The test accuracy rate: " + str(accuracy(X_test, parameters, Y_test, activation_function)) + "%"
+    accuracy, precision, recall, f1 = evaluate_model(X_test, parameters, Y_test, activation_function)
+    text = "The test accuracy rate: " + str(accuracy) + "%\nThe precision is " + str(precision) + "%\nThe recall is " + str(recall) + "%\nThe F1 score is " + str(f1)
     print(text)
     with open('plots/' + dir + '/' + activation_function + '/final_result', "a") as file:
         file.write(text + "\n")

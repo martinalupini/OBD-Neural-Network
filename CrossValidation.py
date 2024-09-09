@@ -18,8 +18,9 @@ def cross_validation(X_train, Y_train, X_valid, Y_valid, layers_dims_list, lambd
     reg_type = None
 
     start = time.time()
+    print("Starting cross validation. This might take time...")
 
-    def evaluate_model(layers_dims, lambd, reg_type):
+    def evaluate_model_CV(layers_dims, lambd, reg_type):
         if reg_type == "none":
             parameters, error, error_list, accuracy_list = model_with_regularization(
                 X_train, Y_train, layers_dims, dir, learning_rate, num_epochs, hidden_layers_activation_fn,
@@ -33,8 +34,8 @@ def cross_validation(X_train, Y_train, X_valid, Y_valid, layers_dims_list, lambd
                 X_train, Y_train, layers_dims, dir, learning_rate, num_epochs, hidden_layers_activation_fn,
                 lambd, with_momentum, True, mini_batch_size=mini_batch_size)
 
-        validation_accuracy = accuracy(X_valid, parameters, Y_valid, hidden_layers_activation_fn)
-        training_accuracy = accuracy(X_train, parameters, Y_train, hidden_layers_activation_fn)
+        validation_accuracy, precision, recall, f1 = evaluate_model(X_valid, parameters, Y_valid, hidden_layers_activation_fn)
+        training_accuracy, precision, recall, f1 = evaluate_model(X_train, parameters, Y_train, hidden_layers_activation_fn)
 
         if print_debug:
             print(f"The training accuracy rate for model {layers_dims} with {reg_type} regularization and lambda {lambd}: ", training_accuracy)
@@ -68,11 +69,11 @@ def cross_validation(X_train, Y_train, X_valid, Y_valid, layers_dims_list, lambd
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = []
         for layers_dims in layers_dims_list:
-            futures.append(executor.submit(evaluate_model, layers_dims, None, "none"))
+            futures.append(executor.submit(evaluate_model_CV, layers_dims, None, "none"))
             for lambd in lambda_l1_list:
-                futures.append(executor.submit(evaluate_model, layers_dims, lambd, "L1"))
+                futures.append(executor.submit(evaluate_model_CV, layers_dims, lambd, "L1"))
             for lambd in lambda_l2_list:
-                futures.append(executor.submit(evaluate_model, layers_dims, lambd, "L2"))
+                futures.append(executor.submit(evaluate_model_CV, layers_dims, lambd, "L2"))
 
         # Aspetta che tutti i thread siano completati
         concurrent.futures.wait(futures)
@@ -88,7 +89,7 @@ def cross_validation(X_train, Y_train, X_valid, Y_valid, layers_dims_list, lambd
 
     end = time.time()
     min, sec = divmod(end - start, 60)
-    print(f"Time spent for cross validation is {int(min)}:{sec:.2f} min")
+    print(f"End cross validation. Time spent for cross validation is {int(min)}:{sec:.2f} min")
 
     if reg_type == "none":
         text = f"Best configuration is {best_dim} using no regularization"

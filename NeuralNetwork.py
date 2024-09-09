@@ -4,6 +4,7 @@ import numpy as np
 
 from UtilsFunctions import *
 
+
 def compute_cost_reg(AL, y, parameters, lambd=0, is_L2=True):
 
     # number of examples
@@ -133,12 +134,13 @@ def model_with_regularization(
 
         AL, caches = L_model_forward(X, parameters, hidden_layers_activation_fn)
         reg_cost = compute_cost_reg(AL, y, parameters, lambd, is_L2)
-        accuracy_epoch = accuracy(X, parameters, y, hidden_layers_activation_fn)
+        accuracy_epoch, precision, recall, f1 = evaluate_model(X, parameters, y, hidden_layers_activation_fn)
         # append cost
         cost_list.append(reg_cost)
         accuracy_list.append(accuracy_epoch)
 
     return parameters, reg_cost, cost_list, accuracy_list
+
 
 # Initialize parameters with he inizialization
 def initialize_parameters(layers_dims, hidden_layers_activation_fn):
@@ -178,6 +180,7 @@ def initialize_parameters(layers_dims, hidden_layers_activation_fn):
             assert parameters["b" + str(l)].shape == (layers_dims[l], 1)
 
     return parameters, previous_parameters
+
 
 # Define helper functions that will be used in L-model forward prop
 def linear_forward(A_prev, W, b):
@@ -257,13 +260,31 @@ def update_parameters(parameters, grads, learning_rate, previous_parameters, wit
     return parameters, prev_parameters
 
 
-def accuracy(X, parameters, y, activation_fn):
+def evaluate_model(X, parameters, y, activation_fn):
 
     probs, caches = L_model_forward(X, parameters, activation_fn)
     labels = (probs >= 0.5) * 1
+
+    # accuracy
     accuracy = np.mean(labels == y) * 100
 
-    return accuracy
+    # True Positives
+    TP = np.sum((y == 1) & (labels == 1))
+    # False Positives
+    FP = np.sum((y == 0) & (labels == 1))
+    # False Negatives
+    FN = np.sum((y == 1) & (labels == 0))
+
+    # precision
+    precision = TP / (TP + FP) if (TP + FP) > 0 else 0
+
+    # recall
+    recall = TP / (TP + FN) if (TP + FN) > 0 else 0
+
+    # f1 score
+    f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+
+    return accuracy, precision*100, recall*100, f1
 
 
 def create_mini_batches(X, y, mini_batch_size):

@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.model_selection import train_test_split
 from PlotUtils import *
 
@@ -8,11 +8,13 @@ from PlotUtils import *
 # Splits the dataset in training, validation and testing set and standardizes the data
 def preprocess(dataset: pd.DataFrame, label_name: str, dataset_name):
     preprocessed_dataset = dataset
+
     # removing lines with null values
     preprocessed_dataset = preprocessed_dataset.dropna(axis=0)
 
-    # shuffling the dataset
-    #preprocessed_dataset = preprocessed_dataset.sample(frac=1).reset_index(drop=True)
+    # removing patient id column since it's not useful for the classification
+    if dataset_name == "fraud":
+        preprocessed_dataset = preprocessed_dataset.drop("id", axis=1)
 
     # removing the label column from dataset and saving it in another array
     labels_column = preprocessed_dataset[label_name].values
@@ -50,6 +52,7 @@ def preprocess(dataset: pd.DataFrame, label_name: str, dataset_name):
 
 # Balances the dataset in order to have the same number of positive and negative instances
 def resize_dataset(dataset: pd.DataFrame, label_name: str, percent):
+
     dataset_0 = dataset[dataset[label_name] == 0]
     dataset_1 = dataset[dataset[label_name] == 1]
 
@@ -70,10 +73,10 @@ def exploratory_data_analysis_entire_dataset():
     count = dataset[label_name].value_counts()
     plotClasses(count, "mushroom.png")
 
-    dataset = pd.read_csv("./datasets/bank_churn.csv")
-    label_name = "Exited"
+    dataset = pd.read_csv("./datasets/fraud.csv")
+    label_name = "Class"
     count = dataset[label_name].value_counts()
-    plotClasses(count, "bank.png")
+    plotClasses(count, "fraud.png")
 
     dataset = pd.read_csv("./datasets/alzheimers_disease_data.csv")
     label_name = "Diagnosis"
