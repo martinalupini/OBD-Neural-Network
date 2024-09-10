@@ -31,8 +31,8 @@ check_pip()
 packages = {
     "numpy": "numpy",
     "matplotlib": "matplotlib",
-    "scikit-learn": "scikit-learn",
-    "pandas": "pandas"
+    "pandas": "pandas",
+    "scikit-learn": "scikit-learn"
 }
 
 # Verifica e installa i pacchetti necessari
