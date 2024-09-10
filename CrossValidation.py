@@ -7,7 +7,7 @@ from FileUtils import *
 import concurrent.futures
 
 
-def cross_validation(X_train, Y_train, X_valid, Y_valid, layers_dims_list, lambda_l1_list, lambda_l2_list, dir, hidden_layers_activation_fn="relu", with_momentum=True, learning_rate=0.01, num_epochs=50, print_debug=True, mini_batch_size=64):
+def cross_validation(X_train, Y_train, X_valid, Y_valid, layers_dims_list, lambda_l1_list, lambda_l2_list, dir, hidden_layers_activation_fn="relu", with_momentum=True, learning_rate=0.1, num_epochs=50, print_debug=True, mini_batch_size=64):
 
     best_parameters = None
     best_accuracy: float = 0.0

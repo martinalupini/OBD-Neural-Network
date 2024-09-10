@@ -11,7 +11,7 @@ def plotError(error_list, num_iterations, dir, model_name="final_model_error", a
     plt.title('Loss through training')
     plt.grid(True)
     plt.savefig('plots/' + dir + '/' + activation_fn + "/" + model_name + '.png')
-    plt.show()
+    #plt.show()
     plt.close()
 
 

@@ -1,8 +1,8 @@
-Time spent for cross validation is 1:32.99 min
+Time spent for cross validation is 1:28.05 min
 
-Best configuration is [33, 128, 64, 1] using L2 with lambda 0.5
+Best configuration is [33, 32, 32, 1] using L1 with lambda 0.5
 
-The test accuracy rate: 82.32558139534883%
-The precision is 74.67532467532467%
-The recall is 75.6578947368421%
-The F1 score is 0.7516339869281046
+The test accuracy rate: 84.88372093023256%
+The precision is 83.20610687022901%
+The recall is 71.71052631578947%
+The F1 score is 0.7703180212014136
